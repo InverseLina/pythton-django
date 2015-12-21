@@ -1,0 +1,97 @@
+Django 框架开发说明：
+
+
+1. 初始化 Django 项目 (如果使用pycharm新建的项目，那这一步就被编辑器帮我们执行了)，包含一个Django实例所需的设置集合，包括数据库的配置、Django的配置选项和应用的配置选项！
+  1). 初始化项目，
+     django-admin startproject mysite
+
+  2). 初始化后的目录结构介绍
+    外层的 mysite/根目录仅仅是项目的一个容器。它的命名对Django无关紧要；你可以把它重新命名为任何你喜欢的名字。
+    manage.py：一个命令行工具，可以使你用多种方式对Django项目进行交互。 你可以在django-admin和manage.py中读到关于manage.py的所有细节。
+    内层的mysite/目录是你的项目的真正的Python包。它是你导入任何东西时将需要使用的Python包的名字（例如 mysite.urls）。
+    mysite/__init__.py：一个空文件，它告诉Python这个目录应该被看做一个Python包。 （如果你是一个Python初学者，关于包的更多内容请阅读Python的官方文档）。
+    mysite/settings.py：该Django 项目的设置/配置。Django 设置 将告诉你这些设置如何工作。
+    mysite/urls.py：该Django项目的URL声明；你的Django站点的“目录”。 你可以在URL 路由器 中阅读到关于URL的更多内容。
+    mysite/wsgi.py：用于你的项目的与WSGI兼容的Web服务器入口。 更多细节请参见如何利用WSGI进行部署。
+
+
+2. 系统数据库配置 (这里以配置Postgres为例)
+  1).首先本地需要安装Postgres服务，并启动，然后创建项目需要的数据库及用户名
+    drop user if exists django_user;
+    drop database if exists django_db;
+    create user django_user password 'welcome' createdb;
+    create database django_db encoding='UTF8';
+    alter database django_db owner to django_user;
+    //alter database django_db set default_text_search_config to 'pg_catalog.english';
+
+  2). 在项目中配置数据库，编辑 mysite/mysite/settings.py 文件
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'django_db',
+            'USER': 'django_user',
+            'PASSWORD': 'welcome',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
+    }
+
+  3).为了使用Postgres数据库，我们需要数据库adapter,这里即需要安装 psycopg2 (它是psycopg1.1的升级版)
+
+  4).上面我们已经配置好了数据库，Django 是十分方便且高效的，它有自己orm框架，可以帮我们把业务层面的数据对象映射到数据库表中，所以这里我们就执行它的数据库初始化，它会把相关的自身需要的数据库表及我们配置了的应用数据库表进行初始创建;
+    python manage.py migrate
+
+3. 生成用户自定义应用并配置到 Django 项目中！
+  1). Django默认包含下面一些应用，
+    django.contrib.admin —— 管理站点。
+    django.contrib.auth —— 认证系统。
+    django.contrib.contenttypes —— 用于内容类型的框架。
+    django.contrib.sessions —— 会话框架。
+    django.contrib.messages —— 消息框架。
+    django.contrib.staticfiles —— 管理静态文件的框架。
+
+  2). 生成自定义应用(执行下面的命令后，项目根目录会多一个"webapp"的目录，后面我们会把和自身业务相关的东西都放到这里面),
+     python manage.py startapp webapp
+
+  3). 配置我们自己应用到Django项目中，以便被它管理，
+    修改 mysite/mysite/settings.py 文件，在属性INSTALLED_APPS最后追加 ('webapp',);
+
+4.实现我们自定义应用的业务
+  1). 创建业务模型，编辑 webapp/models.py
+    from django.db import models
+
+    class Question(models.Model):
+        question_text = models.CharField(max_length=200)
+        pub_date = models.DateTimeField('date published')
+
+    class Choice(models.Model):
+        question = models.ForeignKey(Question)
+        choice_text = models.CharField(max_length=200)
+        votes = models.IntegerField(default=0)
+
+  2).让Django知晓并检查我们的应用
+    python manage.py makemigrations webapp
+
+  3).查看Django为我们自己应用进行数据库映射操作时时会怎么创建表
+    python manage.py sqlmigrate webapp 0001
+
+  4).委托Django帮我们执行应用所需数据库表的创建操作及其他需求
+    python manage.py migrate
+
+  5).
+
+
+
+
+
+
+
+
+
+
+
+
+help:其他一些常见问题
+  1. html模板输出中文乱码: 设置项目settings.py文件编码 [FILE_CHARSET = 'utf-8'],
+
+

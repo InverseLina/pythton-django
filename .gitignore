@@ -1,0 +1,13 @@
+# Mac stuff, ignore
+.DS_Store
+# Wing editer project file, so, ignore
+*.wpr
+*.wpu
+
+#pycharm project file
+.idea
+
+#python compile file
+*.cpython-34.pyc
+
+db.sqlite3
